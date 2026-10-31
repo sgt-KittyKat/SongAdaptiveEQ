@@ -1,7 +1,7 @@
 import { EqualizerChain, getProfile, responsePreamp, checkTrackPeaks, samplePeak, gainToDb, PEAK_CEILING_DB } from './equalizer.ts';
 import type { EqResponse, PeakCheck, PlaybackMode } from './equalizer.ts';
-import { createAdaptivePlan, emptyAdaptive } from './adaptive.ts';
-import type { AdaptiveState, AdaptivePlan } from './adaptive.ts';
+import { createAdaptivePlan, emptyAdaptive, TONAL_TARGETS, MAX_SONG_STRENGTH } from './adaptive.ts';
+import type { AdaptiveState, AdaptivePlan, TonalTarget } from './adaptive.ts';
 import { emptyAnalysis } from './analysis-model.ts';
 import type { AnalysisState } from './analysis-model.ts';
 import { analyzeAudioBuffer } from './analysis-client.ts';
@@ -195,7 +195,7 @@ export class AudioEngine {
     this.pendingCheck = null;
     this.rawPeak = 0;
     this.offset = 0;
-    this.patch({ track: null, playing: false, starting: false, position: 0, loadingName: file.name, error: null, analysis: emptyAnalysis(), adaptive: emptyAdaptive(this.state.adaptive.strength), headroom: { ...this.state.headroom, status: 'idle', originalPeakDb: null, correctedPeakDb: null, adaptivePeakDb: null, error: null } });
+    this.patch({ track: null, playing: false, starting: false, position: 0, loadingName: file.name, error: null, analysis: emptyAnalysis(), adaptive: emptyAdaptive(this.state.adaptive.strength, this.state.adaptive.target), headroom: { ...this.state.headroom, status: 'idle', originalPeakDb: null, correctedPeakDb: null, adaptivePeakDb: null, error: null } });
 
     try {
       if (!/\.(wav|mp3)$/i.test(file.name)) throw new Error('Choose a WAV or MP3 audio file.');
@@ -309,7 +309,7 @@ export class AudioEngine {
     const buffer = this.buffer, profile = getProfile(this.state.profileId), response = this.state.eqResponse;
     if (!buffer || !profile || !response || !this.context || !this.equalizer || this.state.headroom.status !== 'checked' || !this.verified) return;
     try {
-      const plan = createAdaptivePlan(this.context, profile, response, this.state.analysis.status === 'ready' ? this.state.analysis.result : null, this.state.adaptive.strength);
+      const plan = createAdaptivePlan(this.context, profile, response, this.state.analysis.status === 'ready' ? this.state.analysis.result : null, this.state.adaptive.strength, this.state.adaptive.target);
       if (plan.profile === profile || plan.maxDeltaDb < 1e-7) {
         this.patch({ adaptive: { ...this.state.adaptive, status: plan.status, plan, error: null }, headroom: { ...this.state.headroom, adaptivePeakDb: this.state.headroom.correctedPeakDb } });
         this.applyCorrection();
@@ -342,13 +342,19 @@ export class AudioEngine {
 
   setAdaptiveStrength = (strength: number) => {
     if (!Number.isFinite(strength)) return;
-    strength = Math.max(0, Math.min(1, strength));
+    strength = Math.max(0, Math.min(MAX_SONG_STRENGTH, strength));
     if (strength === this.state.adaptive.strength) return;
     this.patch({ adaptive: { ...this.state.adaptive, strength, error: null } });
     this.requestAdaptiveUpdate();
   };
 
   retryAdaptive = () => this.requestAdaptiveUpdate();
+
+  setTonalTarget = (target: TonalTarget) => {
+    if (!TONAL_TARGETS.some(item => item.id === target) || target === this.state.adaptive.target) return;
+    this.patch({ adaptive: { ...this.state.adaptive, target, error: null } });
+    this.requestAdaptiveUpdate();
+  };
 
   private refreshCorrection(): Promise<void> {
     const task = this.prepareCorrection();
@@ -407,7 +413,7 @@ export class AudioEngine {
     if (id === this.state.profileId) return;
     this.invalidateAdaptive();
     this.adaptiveChecks.clear();
-    this.patch({ profileId: id, correctionEnabled: id !== 'none', mode: id === 'none' ? 'bypass' : 'corrected', adaptive: emptyAdaptive(this.state.adaptive.strength) });
+    this.patch({ profileId: id, correctionEnabled: id !== 'none', mode: id === 'none' ? 'bypass' : 'corrected', adaptive: emptyAdaptive(this.state.adaptive.strength, this.state.adaptive.target) });
     void this.refreshCorrection();
   };
 
@@ -537,7 +543,7 @@ export class AudioEngine {
     this.verified = null;
     this.pendingCheck = null;
     this.offset = 0;
-    this.patch({ track: null, loadingName: null, position: 0, playing: false, starting: false, error: null, analysis: emptyAnalysis(), adaptive: emptyAdaptive(this.state.adaptive.strength) });
+    this.patch({ track: null, loadingName: null, position: 0, playing: false, starting: false, error: null, analysis: emptyAnalysis(), adaptive: emptyAdaptive(this.state.adaptive.strength, this.state.adaptive.target) });
     void this.refreshCorrection();
   };
 
@@ -555,3 +561,4 @@ export class AudioEngine {
 }
 
 export const audioEngine = new AudioEngine();
+

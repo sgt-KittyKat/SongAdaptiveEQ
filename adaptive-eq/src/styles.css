@@ -223,6 +223,16 @@ kbd { font-family: inherit; font-size: 8px; padding: 3px 6px; border: 1px solid 
 .eq-legend > span { display: inline-flex; align-items: center; gap: 6px; }
 .eq-legend { flex-wrap: wrap; row-gap: 9px; }
 .legend-adaptive { border-top: 2px solid #84cfc1; }
+.legend-song { border-top: 2px dashed #d8b77c; }
+.spectral-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; margin: 18px 0 24px; padding: 17px; border: 1px solid #3b5142; border-radius: 8px; background: #1b281f; }
+.spectral-summary > span { display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+.spectral-summary small { font-size: 7px; line-height: 1.7; color: #9dbea9; letter-spacing: .7px; }
+.spectral-summary strong { font-size: 13px; color: #c9e1cd; font-weight: 500; }
+.spectral-summary p { grid-column: 1 / -1; font-size: 10px; color: #98b19e; margin: 0; line-height: 1.8; }
+@media (max-width: 700px) { .spectral-summary { grid-template-columns: 1fr; } }
+.adaptive-diagnostics { display: flex; flex-wrap: wrap; gap: 11px 24px; border-top: 1px solid #344b3b; padding-top: 14px; margin-top: 15px; }
+.adaptive-diagnostics > span { display: flex; flex-direction: column; gap: 7px; font-size: 7px; color: #94ae9a; letter-spacing: .7px; }
+.adaptive-diagnostics strong { font-size: 11px; font-weight: 500; color: #d2e5cb; letter-spacing: 0; }
 .adaptive-panel { border: 1px solid #3b5142; border-radius: 10px; padding: 21px; background: linear-gradient(115deg, #202d24, #1b251d); margin: 0 0 27px; }
 .adaptive-panel.is-unavailable { opacity: .7; }
 .adaptive-heading { display: flex; justify-content: space-between; align-items: center; gap: 15px; }
@@ -231,6 +241,14 @@ kbd { font-family: inherit; font-size: 8px; padding: 3px 6px; border: 1px solid 
 .adaptive-limit { border: 1px solid #48604d; border-radius: 20px; padding: 7px 10px; color: #b4d3bb; font-size: 9px; white-space: nowrap; }
 .adaptive-panel > p, .adaptive-method p { font-size: 11px; line-height: 1.8; color: #a3b6a5; max-width: 740px; margin: 12px 0 17px; }
 .adaptive-strength { max-width: 450px; margin: 18px 0 15px; }
+.adaptive-formula { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; color: #c1d7c2; font-size: 10px; margin: 17px 0 20px; }
+.adaptive-formula > span { background: #17231b; border: 1px solid #3b5241; border-radius: 6px; padding: 9px 11px; }
+.adaptive-formula strong { color: #c8ed9a; margin-left: 6px; font-weight: 500; }
+.adaptive-formula i { font-size: 15px; color: #89aa91; font-style: normal; }
+.adaptive-target { max-width: 450px; }
+.adaptive-target label { font-size: 7px; letter-spacing: 1px; color: #a7c3ae; display: block; margin-bottom: 8px; }
+.adaptive-target select { width: 100%; border: 1px solid #4b624b; border-radius: 7px; padding: 10px 12px; background: #1c2b1e; color: #d4e6c8; font: inherit; font-size: 11px; }
+.adaptive-target small { font-size: 9px; line-height: 1.7; color: #98b49f; display: block; margin-top: 8px; }
 .adaptive-strength label { display: flex; align-items: center; justify-content: space-between; color: #c4d7bc; font-size: 11px; }
 .adaptive-strength label strong { color: #c8ed9a; font-size: 16px; font-weight: 500; font-variant-numeric: tabular-nums; }
 .adaptive-strength input { width: 100%; height: 25px; margin: 8px 0 0; accent-color: #c8ed9a; cursor: pointer; }

@@ -1,6 +1,6 @@
 # AdaptiveEQ build plan
 
-Status: Steps 2 through 5 implemented in `adaptive-eq/`: player, pinned Arctis 7+ correction, background original-track analysis, and experimental track-dependent EQ. Adaptive mode includes a strength control, measured/adaptive/applied graph, numerical explanations, a combined 2 dB curve-change bound, verified sample peaks, and shared trim across all three modes. Production build and 52 Node tests pass; 17 new native adaptive checks passed alongside the earlier 8 worker and 20 measured DSP checks. Major V remains unsupported. Physical listening is still a user check. Step 6, a loudness-matched randomized listening comparison, is next.
+Status: Steps 2 through 5 implemented in `adaptive-eq/`. The song engine now uses robust 30-band temporal spectra, tilt/contrast/local detail, character-aware reference families and native fitted broad filters, independent of the complete Arctis 7+ calibration. Blend is 0–150%, default 100%; the combined song response is bounded to ±5 dB and peak-checked. Production build and 65 Node tests pass, plus 20 native adaptive DSP checks. Earlier measured DSP and worker checks remain regression coverage. See `adaptive-eq/SONG_EQ_VALIDATION.md` for nine controlled old/new comparisons. Major V remains unsupported. Step 6 is loudness-matched randomized listening; physical preference is not yet established.
 
 Constraints: 11 hours remaining, one developer, Windows. Available headphones: Marshall Major V and an Arctis 7+ (assumed to mean SteelSeries Arctis 7+; confirm the label before importing its profile).
 
@@ -80,7 +80,7 @@ Done when playback reflects the imported settings, the graph matches the applied
 ### Step 4: Analyze the song
 
 - Analyze decoded audio before EQ, across the recording rather than only its introduction.
-- Start with Hann-windowed FFT frames and aggregate powers into about eight broad frequency regions. Use a sufficiently long FFT for useful bass resolution; begin with 8192 samples and 50% overlap.
+- Start with Hann-windowed FFT frames and aggregate powers into about eight broad frequency regions. Use a sufficiently long FFT for useful bass resolution; use 16384 samples and 50% overlap, retaining a 30-band robust spectrum alongside the eight-band overview.
 - Combine left/right channel powers rather than summing their waveforms, which could cancel out-of-phase content.
 - Exclude silence, calculate relative band energies, and summarize how consistently regions contain content.
 - Normalize the features so changing only the source gain does not change the proposed tonal correction.
@@ -92,25 +92,15 @@ The UI should say "substantial energy in this region," rather than claiming to h
 
 ### Step 5: Add experimental track adaptation
 
-Use a simple, bounded hypothesis that fits the deadline: retain more of the measured correction where the recording contains substantial content, and slightly reduce correction in sparsely occupied regions.
+Implemented as full measured headphone correction plus an independently fitted song layer. The earlier five-region algorithm discarded too much spectral/temporal detail and saturated different inputs at identical gain caps.
 
-For each imported filter:
+- Analyze 30 one-third-octave regions with 16,384-sample FFTs and 50% overlap. Preserve the eight-band overview and timeline. Use frame-normalized, trimmed/median powers so loud sections and short transients cannot dominate. Estimate persistence, spread, quantile contrast, local departures and robust tilt.
+- Retain Balanced/Warm/Clear preference references. Use measured broad shape to select a small Bass-rich/Bright/Dark/Mid-focused/Presence-led family allowance. Preserve some intentional character; these are designed spectral families, not detected genres or optimal mastering targets.
+- Remove a single overall level offset, preserving tilt and local shape. Let deviation size and reliability govern correction. Protect harmonic peaks, sparse content and unsupported dips. Avoid fixed percentage-energy boost gates and early hard-clamped gain patterns.
+- Fit up to eight broad native filters jointly, including overlap, and report fit error. Adapt peak locations and Q to supported residual features. Keep the imported headphone filters unchanged. Limit each song filter and its combined dense-grid response to ±5 dB; native-render peaks before applying.
+- Offer 0–150% blend with an expressive 100% default. Zero reproduces measured processing exactly. Coalesce requests, ignore stale results, retain verified output during checks/failures and preserve shared conservative trim.
 
-1. Derive a relevance score `r_i` between 0 and 1 from the track's broad-band relative energy and occupancy around the filter's effective frequency region. Handle shelves using their affected range, not only their turnover frequency.
-2. Start with `strength_i = 0.7 + 0.3 * r_i`.
-3. Scale the baseline gain toward zero using this strength. Preserve filter frequency and Q. Do not increase the magnitude of any individual filter gain beyond the measured-profile baseline.
-4. Limit the departure of the complete combined response from measured EQ to 2 dB on a 4,098-point grid including DC/Nyquist. Reduce the overall adaptation amount if needed. Re-render track peaks before installing the new setting; retain verified playback while checking. All modes share conservative trim.
-5. Keep the result fixed for the track. Add an adaptation-strength control that returns exactly to the baseline at zero.
-
-The numerical choices above are experimental defaults, not validated acoustic thresholds. This is a content-relevance heuristic, not a model of perception, masking, musical importance, or a device's distortion/output limits. It may undercorrect a headphone, and it may offer little advantage over the static profile. Step 6 tests that hypothesis.
-
-Implemented policy: band relevance is `0.5 * sqrt(energy / largest_band_energy) + 0.5 * activity_fraction`, clamped to 0–1. Filter relevance averages band relevance using its actual absolute dB response on the log-frequency grid. Strength `s` gives `gain_i = baseline_i * (1 - 0.3 * (1 - r_i) * s)`, followed by the combined-response bound. Zero uses the measured branch exactly. Missing/silent analysis, clips under 3 seconds, or fewer than 16 analyzed frames use measured correction. Strength changes commit on slider release/keyboard interaction; obsolete results cannot apply. Shared trim can stay more conservative after reducing adaptation, preserving a stable, safe comparison while settings fade.
-
-Do not add more bass simply because a song is bass-heavy. A frequency-response profile does not establish that the headphone can deliver an extra boost without distortion.
-
-Generate explanations directly from the measured profile and calculated decisions. For example: "This region has substantial content in this track, so we retained most of the profile's correction here." Show actual values only after calculating them.
-
-Done when different relevant inputs can produce different bounded settings, repeated analysis is deterministic, and adaptation strength zero exactly reproduces the baseline. Similar tracks may legitimately receive similar settings.
+Validation compares nine controlled broadband passages; strong deviations can reach 3–5 dB, the balanced reference stays mild, and no variation or minimum correction is imposed. Tests cover brief transients, source gain, nearby spectral features, fitting loss and physical filter constraints. Listener preference on real music remains Step 6.
 
 ### Step 6: Build a fair listening comparison
 

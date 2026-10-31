@@ -1,4 +1,4 @@
-export const FFT_SIZE = 8192;
+export const FFT_SIZE = 16384;
 export const HOP_SIZE = FFT_SIZE / 2;
 export const SILENCE_GATE_DB = -60;
 export const ACTIVITY_POWER_FRACTION = 0.01;
@@ -17,13 +17,23 @@ export interface BandAnalysis {
   energyPercent: number; activityPercent: number; medianSharePercent: number; variationPercentPoints: number;
 }
 export interface AnalysisSection { startSeconds: number; endSeconds: number; energyPercent: number[]; activeFraction: number }
+export interface SpectralBand {
+  lowHz: number; highHz: number; frequency: number; available: boolean;
+  robustPower: number; densityDb: number; activityPercent: number; spreadDb: number;
+  contrastDb: number; reliability: number; localDeviationDb: number;
+}
+export interface SpectralAnalysis {
+  bands: SpectralBand[]; tiltDbPerOctave: number | null; contrastDb: number;
+  aggregation: 'frame-normalized-trimmed-power'; trimFraction: number;
+}
 export interface TrackAnalysis {
-  version: 1; duration: number; sampleRate: number; channels: number;
+  version: 1 | 2; duration: number; sampleRate: number; channels: number;
   fftSize: number; hopSize: number; frequencyResolutionHz: number;
   silenceGateDb: number; activityPowerFraction: number;
   totalFrames: number; analyzedFrames: number; hasContent: boolean;
   rmsDbfs: number | null; samplePeakDbfs: number | null; crestDb: number | null;
   bands: BandAnalysis[]; sections: AnalysisSection[];
+  spectral?: SpectralAnalysis;
 }
 export interface AnalysisInput { sampleRate: number; channels: Float32Array[] }
 export interface AnalysisState {
