@@ -1,0 +1,79 @@
+{
+  "id": "steelseries-arctis-7-plus",
+  "name": "SteelSeries Arctis 7+",
+  "measurementSource": "RTINGS",
+  "measurementRig": "HMS II.3 over-ear",
+  "target": "Published AutoEq target",
+  "preampDb": -5.2,
+  "filters": [
+    {
+      "type": "lowshelf",
+      "frequency": 105,
+      "gain": 6.7,
+      "q": 0.7
+    },
+    {
+      "type": "peaking",
+      "frequency": 95,
+      "gain": -6.6,
+      "q": 0.42
+    },
+    {
+      "type": "peaking",
+      "frequency": 821,
+      "gain": 3.8,
+      "q": 0.55
+    },
+    {
+      "type": "peaking",
+      "frequency": 2837,
+      "gain": 2.5,
+      "q": 2.18
+    },
+    {
+      "type": "peaking",
+      "frequency": 238,
+      "gain": -1.9,
+      "q": 1.73
+    },
+    {
+      "type": "highshelf",
+      "frequency": 10000,
+      "gain": -4.5,
+      "q": 0.7
+    },
+    {
+      "type": "peaking",
+      "frequency": 5972,
+      "gain": -3.7,
+      "q": 5.92
+    },
+    {
+      "type": "peaking",
+      "frequency": 4932,
+      "gain": 1.9,
+      "q": 5.6
+    },
+    {
+      "type": "peaking",
+      "frequency": 10000,
+      "gain": -0.5,
+      "q": 4.62
+    },
+    {
+      "type": "peaking",
+      "frequency": 1337,
+      "gain": 0.4,
+      "q": 3.89
+    }
+  ],
+  "provenance": {
+    "repository": "https://github.com/jaakkopasanen/AutoEq",
+    "commit": "7ae0f56d53074872b028649617a22bbb4232feb7",
+    "sourceUrl": "https://raw.githubusercontent.com/jaakkopasanen/AutoEq/7ae0f56d53074872b028649617a22bbb4232feb7/results/Rtings/HMS%20II.3%20over-ear/SteelSeries%20Arctis%207%2B/SteelSeries%20Arctis%207%2B%20ParametricEQ.txt",
+    "sha256": "135cb35beb7a0e7b818cd8a6ae34a4dedbf904781349bc79dfa15c2991149c07",
+    "presetUrl": "/profiles/steelseries-arctis-7-plus-parametric.txt",
+    "licenseUrl": "/licenses/AutoEq-MIT.txt",
+    "importedOn": "2026-10-31"
+  }
+}
